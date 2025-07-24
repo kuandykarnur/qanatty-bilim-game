@@ -1,13 +1,99 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="kk">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Qanatty Bilim</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Қанатты Білім</title>
+  <style>
+    * { margin: 0; padding: 0; }
+    canvas { display: block; margin: 0 auto; background: #87ceeb; }
+    body { text-align: center; font-family: sans-serif; }
+  </style>
 </head>
 <body>
-  <canvas id="gameCanvas"></canvas>
-  <script src="main.js"></script>
+  <h1>Қанатты Білім Ойыны</h1>
+  <canvas id="game" width="320" height="480"></canvas>
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    let birdY = 150, birdVY = 0, gravity = 0.5;
+    const birdX = 50;
+    const pipes = [];
+    let score = 0;
+    const questions = [
+      { q: "1 + 1 = ?", a: "2" },
+      { q: "Астананың атауы?", a: "Астана" },
+      { q: "Қазақстанда неше облыс бар?", a: "17" }
+    ];
+
+    function spawnPipe() {
+      const gapY = Math.random() * 200 + 50;
+      const q = questions[Math.floor(Math.random() * questions.length)];
+      pipes.push({ x: canvas.width, gapY, question: q });
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Bird
+      ctx.fillStyle = "yellow";
+      ctx.beginPath();
+      ctx.arc(birdX, birdY, 10, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Gravity
+      birdVY += gravity;
+      birdY += birdVY;
+
+      // Pipes
+      for (let i = 0; i < pipes.length; i++) {
+        const p = pipes[i];
+        p.x -= 2;
+
+        ctx.fillStyle = "green";
+        ctx.fillRect(p.x, 0, 40, p.gapY - 50);
+        ctx.fillRect(p.x, p.gapY + 50, 40, canvas.height);
+
+        ctx.fillStyle = "white";
+        ctx.font = "12px sans-serif";
+        ctx.fillText(p.question.q, p.x - 10, p.gapY);
+
+        // Collision
+        if (
+          birdX + 10 > p.x &&
+          birdX - 10 < p.x + 40 &&
+          (birdY < p.gapY - 50 || birdY > p.gapY + 50)
+        ) {
+          alert("Ойын аяқталды! Ұпай: " + score);
+          document.location.reload();
+        }
+
+        // Passed pipe
+        if (p.x + 40 < birdX && !p.passed) {
+          const userAnswer = prompt(p.question.q);
+          if (userAnswer?.trim() === p.question.a) {
+            score++;
+          } else {
+            alert("Дұрыс емес жауап! Ойын бітті. Ұпай: " + score);
+            document.location.reload();
+          }
+          p.passed = true;
+        }
+      }
+
+      ctx.fillStyle = "black";
+      ctx.fillText("Ұпай: " + score, 10, 20);
+
+      requestAnimationFrame(draw);
+    }
+
+    canvas.onclick = () => {
+      birdVY = -7;
+    };
+
+    setInterval(spawnPipe, 3000);
+    draw();
+  </script>
 </body>
 </html>
+
