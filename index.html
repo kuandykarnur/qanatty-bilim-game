@@ -2,24 +2,16 @@
 <html lang="kk">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Qanatty Bilim - Flappy Parliament</title>
+  <title>Flappy Parliament</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1 class="title">📘 Қанатты Білім</h1>
   <canvas id="gameCanvas"></canvas>
 
-  <div id="questionBox" class="hidden">
-    <p id="questionText"></p>
-    <div id="answers"></div>
-  </div>
+  <!-- СҰРАҚТАР ПАНЕЛІ -->
+  <div id="question-box" class="question-box"></div>
 
-  <div id="gameOver" class="hidden">
-    <h2>🎯 Ойын аяқталды!</h2>
-    <button onclick="restartGame()">Қайта бастау</button>
-  </div>
-
+  <script src="questions.js"></script>
   <script src="main.js"></script>
 </body>
 </html>
