@@ -2,15 +2,91 @@
 <html lang="kk">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Flappy Parliament</title>
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: sans-serif;
+      background: linear-gradient(#a2d4f4, #ffffff);
+    }
+
+    #gameCanvas {
+      display: block;
+    }
+
+    #question-box {
+      position: absolute;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border: 3px solid #4CAF50;
+      border-radius: 15px;
+      padding: 20px;
+      width: 300px;
+      z-index: 10;
+      display: none;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+    #question {
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+
+    .answer {
+      background: #f0f0f0;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: 0.2s;
+    }
+
+    .answer:hover {
+      background: #d0ffd0;
+    }
+
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 22px;
+      font-weight: bold;
+      color: #333;
+      background: rgba(255, 255, 255, 0.6);
+      padding: 8px 12px;
+      border-radius: 10px;
+    }
+
+    .title-banner {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #ffffff;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 6px 14px;
+      border-radius: 12px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Қанатты Білім: Flappy Parliament</h1>
-  <canvas id="gameCanvas" width="400" height="600"></canvas>
+  <canvas id="gameCanvas"></canvas>
 
-  <script src="questions.js"></script>
+  <div class="title-banner">«Қанат қағып, биікке самға!»</div>
+  <div id="score">Ұпай: 0</div>
+
+  <div id="question-box">
+    <div id="question">Сұрақ?</div>
+    <div id="answers"></div>
+  </div>
+
   <script src="main.js"></script>
 </body>
 </html>
