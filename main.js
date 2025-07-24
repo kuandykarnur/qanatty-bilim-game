@@ -175,8 +175,3 @@ canvas.addEventListener("click", () => {
 
 createPipe();
 updateGame();
-
-// Құс ойыныңыз бөлек canvas-та жұмыс істейді, сұрақтар бөлек интерфейсте
-window.onload = () => {
-  showQuestion();
-};
