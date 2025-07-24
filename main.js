@@ -1,177 +1,130 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-let bird = {
-  x: 80,
-  y: canvas.height / 2,
-  width: 40,
-  height: 40,
-  gravity: 0.6,
-  lift: -12,
-  velocity: 0
-};
-
+let bird = { x: 50, y: 150, width: 30, height: 30, gravity: 2, velocity: 0 };
 let pipes = [];
 let score = 0;
-let questionIndex = 0;
-let showQuestion = false;
-let gamePaused = false;
+let gameInterval;
+let questionVisible = false;
 
-const questionBox = document.getElementById("questionBox");
-const questionText = document.getElementById("question");
-const optionsBox = document.getElementById("options");
+const questionBox = document.getElementById("question-box");
+const questionText = document.getElementById("question-text");
+const answersBox = document.getElementById("answers");
 
-const questions = [
+let questions = [
   {
-    question: "Қазақстан Республикасының Астанасы қай қала?",
-    options: ["Алматы", "Шымкент", "Астана", "Орал"],
-    answer: "Астана"
+    q: "Қазақстанның астанасы қай қала?",
+    a: ["Алматы", "Астана", "Шымкент"],
+    c: "Астана"
   },
   {
-    question: "Елтаңбада қандай жануар бейнеленген?",
-    options: ["Жылқы", "Барыс", "Қыран", "Қой"],
-    answer: "Жылқы"
+    q: "Қазақстанның Тұңғыш Президенті кім?",
+    a: ["Қасым-Жомарт Тоқаев", "Нұрсұлтан Назарбаев", "Әлихан Бөкейхан"],
+    c: "Нұрсұлтан Назарбаев"
   },
   {
-    question: "Қазақстан Тәуелсіздігін қай жылы алды?",
-    options: ["1991", "2001", "1986", "1993"],
-    answer: "1991"
+    q: "Ата заң қай жылы қабылданды?",
+    a: ["1993", "1995", "2001"],
+    c: "1995"
   },
   {
-    question: "Қазақстанда неше облыс бар?",
-    options: ["14", "17", "12", "16"],
-    answer: "17"
+    q: "Қазақстанда неше облыс бар?",
+    a: ["14", "17", "20"],
+    c: "17"
   },
   {
-    question: "ҚР Парламенті неше палатадан тұрады?",
-    options: ["1", "2", "3", "4"],
-    answer: "2"
-  },
-  {
-    question: "Елбасы сөзі нені білдіреді?",
-    options: ["Министр", "Президент", "Батыр", "Сенатор"],
-    answer: "Президент"
+    q: "Мемлекеттік тіл?",
+    a: ["Орыс тілі", "Қазақ тілі", "Ағылшын тілі"],
+    c: "Қазақ тілі"
   }
 ];
 
 function drawBird() {
-  ctx.fillStyle = "#FFD700";
-  ctx.beginPath();
-  ctx.arc(bird.x, bird.y, bird.width / 2, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-function createPipe() {
-  let topHeight = Math.floor(Math.random() * (canvas.height / 2));
-  let bottomHeight = canvas.height - topHeight - 200;
-
-  pipes.push({
-    x: canvas.width,
-    width: 60,
-    top: topHeight,
-    bottom: bottomHeight
-  });
+  ctx.fillStyle = "yellow";
+  ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
 }
 
 function drawPipes() {
-  ctx.fillStyle = "#228B22";
+  ctx.fillStyle = "green";
   pipes.forEach(pipe => {
     ctx.fillRect(pipe.x, 0, pipe.width, pipe.top);
-    ctx.fillRect(pipe.x, canvas.height - pipe.bottom, pipe.width, pipe.bottom);
+    ctx.fillRect(pipe.x, pipe.top + pipe.gap, pipe.width, canvas.height - pipe.top - pipe.gap);
   });
 }
 
-function checkCollision(pipe) {
-  if (
-    bird.x + bird.width / 2 > pipe.x &&
-    bird.x - bird.width / 2 < pipe.x + pipe.width &&
-    (
-      bird.y - bird.height / 2 < pipe.top ||
-      bird.y + bird.height / 2 > canvas.height - pipe.bottom
-    )
-  ) {
-    gamePaused = true;
-    showNextQuestion();
-  }
-}
+function showQuestion() {
+  if (questions.length === 0) return;
+  const index = Math.floor(Math.random() * questions.length);
+  const question = questions.splice(index, 1)[0];
 
-function showNextQuestion() {
-  if (questionIndex >= questions.length) questionIndex = 0;
-  const current = questions[questionIndex];
+  questionText.textContent = question.q;
+  answersBox.innerHTML = "";
 
-  questionText.textContent = current.question;
-  optionsBox.innerHTML = "";
-
-  current.options.forEach(option => {
+  question.a.forEach(answer => {
     const btn = document.createElement("button");
-    btn.textContent = option;
+    btn.textContent = answer;
     btn.onclick = () => {
-      if (option === current.answer) {
+      questionBox.classList.add("hidden");
+      questionVisible = false;
+      if (answer === question.c) {
         score++;
-        gamePaused = false;
-        questionBox.classList.add("hidden");
       } else {
-        score = Math.max(0, score - 1);
-        // stay on question
+        clearInterval(gameInterval);
+        alert("Ойын аяқталды! Ұпай: " + score);
+        location.reload();
       }
     };
-    optionsBox.appendChild(btn);
+    answersBox.appendChild(btn);
   });
 
   questionBox.classList.remove("hidden");
-  questionIndex++;
-}
-
-function drawScore() {
-  ctx.fillStyle = "#000";
-  ctx.font = "24px Arial";
-  ctx.fillText("Ұпай: " + score, 20, 40);
+  questionVisible = true;
 }
 
 function updateGame() {
-  if (!gamePaused) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!questionVisible) {
     bird.velocity += bird.gravity;
     bird.y += bird.velocity;
 
-    if (bird.y + bird.height / 2 >= canvas.height) {
-      bird.y = canvas.height - bird.height / 2;
-      bird.velocity = 0;
+    if (bird.y < 0 || bird.y + bird.height > canvas.height) {
+      endGame();
     }
 
     pipes.forEach(pipe => {
-      pipe.x -= 4;
-      checkCollision(pipe);
+      pipe.x -= 2;
+
+      if (
+        bird.x < pipe.x + pipe.width &&
+        bird.x + bird.width > pipe.x &&
+        (bird.y < pipe.top || bird.y + bird.height > pipe.top + pipe.gap)
+      ) {
+        showQuestion();
+      }
     });
 
-    if (pipes.length && pipes[0].x + pipes[0].width < 0) {
-      pipes.shift();
+    if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 200) {
+      const top = Math.random() * 200 + 50;
+      pipes.push({ x: canvas.width, width: 40, top: top, gap: 120 });
     }
 
-    if (pipes.length < 3 || pipes[pipes.length - 1].x < canvas.width - 300) {
-      createPipe();
-    }
+    drawBird();
+    drawPipes();
+    ctx.fillStyle = "black";
+    ctx.fillText("Ұпай: " + score, 10, 20);
   }
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawBird();
-  drawPipes();
-  drawScore();
-
-  requestAnimationFrame(updateGame);
 }
 
-window.addEventListener("keydown", e => {
-  if (e.code === "Space") {
-    bird.velocity = bird.lift;
+function endGame() {
+  clearInterval(gameInterval);
+  alert("Ойын аяқталды! Ұпай: " + score);
+  location.reload();
+}
+
+document.addEventListener("keydown", () => {
+  if (!questionVisible) {
+    bird.velocity = -10;
   }
 });
 
-canvas.addEventListener("click", () => {
-  bird.velocity = bird.lift;
-});
-
-createPipe();
-updateGame();
+gameInterval = setInterval(updateGame, 20);
