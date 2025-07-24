@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html lang="kk">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Flappy Parliament</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <canvas id="gameCanvas"></canvas>
 
-  <!-- СҰРАҚТАР ПАНЕЛІ -->
-  <div id="question-box" class="question-box"></div>
+  <div id="questionBox" class="hidden">
+    <div id="question"></div>
+    <div id="options"></div>
+  </div>
 
-  <script src="questions.js"></script>
   <script src="main.js"></script>
 </body>
 </html>
