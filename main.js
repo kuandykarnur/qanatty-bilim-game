@@ -1,129 +1,114 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-let bird = { x: 50, y: 150, width: 30, height: 30, gravity: 2, velocity: 0 };
+let bird = {
+  x: 50,
+  y: 150,
+  width: 30,
+  height: 30,
+  velocity: 0,
+  gravity: 0.5,
+  jumpPower: -8
+};
+
+let isGameOver = false;
 let pipes = [];
 let score = 0;
-let gameInterval;
-let questionVisible = false;
-
-const questionBox = document.getElementById("question-box");
-const questionText = document.getElementById("question-text");
-const answersBox = document.getElementById("answers");
-
-let questions = [
-  {
-    q: "Қазақстанның астанасы қай қала?",
-    a: ["Алматы", "Астана", "Шымкент"],
-    c: "Астана"
-  },
-  {
-    q: "Қазақстанның Тұңғыш Президенті кім?",
-    a: ["Қасым-Жомарт Тоқаев", "Нұрсұлтан Назарбаев", "Әлихан Бөкейхан"],
-    c: "Нұрсұлтан Назарбаев"
-  },
-  {
-    q: "Ата заң қай жылы қабылданды?",
-    a: ["1993", "1995", "2001"],
-    c: "1995"
-  },
-  {
-    q: "Қазақстанда неше облыс бар?",
-    a: ["14", "17", "20"],
-    c: "17"
-  },
-  {
-    q: "Мемлекеттік тіл?",
-    a: ["Орыс тілі", "Қазақ тілі", "Ағылшын тілі"],
-    c: "Қазақ тілі"
-  }
-];
 
 function drawBird() {
   ctx.fillStyle = "yellow";
-  ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
+  ctx.beginPath();
+  ctx.arc(bird.x, bird.y, bird.width / 2, 0, Math.PI * 2);
+  ctx.fill();
 }
 
 function drawPipes() {
   ctx.fillStyle = "green";
   pipes.forEach(pipe => {
     ctx.fillRect(pipe.x, 0, pipe.width, pipe.top);
-    ctx.fillRect(pipe.x, pipe.top + pipe.gap, pipe.width, canvas.height - pipe.top - pipe.gap);
+    ctx.fillRect(pipe.x, canvas.height - pipe.bottom, pipe.width, pipe.bottom);
   });
 }
 
-function showQuestion() {
-  if (questions.length === 0) return;
-  const index = Math.floor(Math.random() * questions.length);
-  const question = questions.splice(index, 1)[0];
+function generatePipe() {
+  let top = Math.floor(Math.random() * (canvas.height - 200)) + 20;
+  let gap = 120;
+  let bottom = canvas.height - top - gap;
 
-  questionText.textContent = question.q;
-  answersBox.innerHTML = "";
-
-  question.a.forEach(answer => {
-    const btn = document.createElement("button");
-    btn.textContent = answer;
-    btn.onclick = () => {
-      questionBox.classList.add("hidden");
-      questionVisible = false;
-      if (answer === question.c) {
-        score++;
-      } else {
-        clearInterval(gameInterval);
-        alert("Ойын аяқталды! Ұпай: " + score);
-        location.reload();
-      }
-    };
-    answersBox.appendChild(btn);
+  pipes.push({
+    x: canvas.width,
+    width: 40,
+    top: top,
+    bottom: bottom
   });
-
-  questionBox.classList.remove("hidden");
-  questionVisible = true;
 }
 
-function updateGame() {
+function drawScore() {
+  ctx.fillStyle = "white";
+  ctx.font = "24px sans-serif";
+  ctx.fillText("Ұпай: " + score, 20, 40);
+}
+
+function update() {
+  if (isGameOver) return;
+
+  bird.velocity += bird.gravity;
+  bird.y += bird.velocity;
+
+  // Құс экраннан шықты ма?
+  if (bird.y + bird.height > canvas.height || bird.y < 0) {
+    isGameOver = true;
+  }
+
+  // Кедергілерді жаңарту
+  pipes.forEach(pipe => {
+    pipe.x -= 2;
+
+    if (
+      bird.x < pipe.x + pipe.width &&
+      bird.x + bird.width > pipe.x &&
+      (bird.y < pipe.top || bird.y + bird.height > canvas.height - pipe.bottom)
+    ) {
+      isGameOver = true;
+    }
+
+    if (pipe.x + pipe.width === bird.x) {
+      score++;
+    }
+  });
+
+  // Экраннан шыққан кедергілерді өшіру
+  pipes = pipes.filter(pipe => pipe.x + pipe.width > 0);
+}
+
+function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (!questionVisible) {
-    bird.velocity += bird.gravity;
-    bird.y += bird.velocity;
 
-    if (bird.y < 0 || bird.y + bird.height > canvas.height) {
-      endGame();
-    }
+  drawBird();
+  drawPipes();
+  drawScore();
 
-    pipes.forEach(pipe => {
-      pipe.x -= 2;
-
-      if (
-        bird.x < pipe.x + pipe.width &&
-        bird.x + bird.width > pipe.x &&
-        (bird.y < pipe.top || bird.y + bird.height > pipe.top + pipe.gap)
-      ) {
-        showQuestion();
-      }
-    });
-
-    if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 200) {
-      const top = Math.random() * 200 + 50;
-      pipes.push({ x: canvas.width, width: 40, top: top, gap: 120 });
-    }
-
-    drawBird();
-    drawPipes();
-    ctx.fillStyle = "black";
-    ctx.fillText("Ұпай: " + score, 10, 20);
+  if (isGameOver) {
+    ctx.fillStyle = "red";
+    ctx.font = "36px sans-serif";
+    ctx.fillText("Ойын аяқталды", 80, canvas.height / 2);
   }
 }
 
-function endGame() {
-  clearInterval(gameInterval);
-  alert("Ойын аяқталды! Ұпай: " + score);
-  location.reload();
+function gameLoop() {
+  update();
+  draw();
+  requestAnimationFrame(gameLoop);
 }
 
-document.addEventListener("keydown", () => {
-  if (!questionVisible) {
-    bird.velocity = -10;
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space" || e.code === "ArrowUp") {
+    bird.velocity = bird.jumpPower;
+  }
+});
+
+setInterval(generatePipe, 2000);
+gameLoop();
   }
 });
 
