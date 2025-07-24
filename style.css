@@ -1,49 +1,142 @@
-body {
-  margin: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(to bottom, #d0eaff, #ffffff);
-  text-align: center;
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+canvas.width = 400;
+canvas.height = 500;
+
+let bird = { x: 80, y: 150, width: 30, height: 30, gravity: 1.2, lift: -15, velocity: 0 };
+let pipes = [];
+let frame = 0;
+let score = 0;
+let currentQuestion = 0;
+let answered = false;
+
+const questions = [
+  {
+    q: "Қазақстан Республикасының астанасы қай қала?",
+    options: ["Алматы", "Астана", "Шымкент", "Тараз"],
+    correct: 1,
+  },
+  {
+    q: "1 шаршы метр неше см²?",
+    options: ["100", "1000", "10000", "100000"],
+    correct: 2,
+  },
+  {
+    q: "Абай Құнанбайұлы қай ғасырда өмір сүрді?",
+    options: ["XVII", "XVIII", "XIX", "XX"],
+    correct: 2,
+  },
+  {
+    q: "9 * 7 нешеге тең?",
+    options: ["56", "63", "72", "81"],
+    correct: 1,
+  },
+  {
+    q: "Судың қайнау температурасы қандай?",
+    options: ["50°C", "90°C", "100°C", "120°C"],
+    correct: 2,
+  },
+];
+
+function drawBird() {
+  ctx.fillStyle = "#FFEB3B";
+  ctx.beginPath();
+  ctx.arc(bird.x, bird.y, bird.width / 2, 0, Math.PI * 2);
+  ctx.fill();
 }
 
-h1 {
-  margin-top: 10px;
-  color: #004085;
+function drawPipes() {
+  ctx.fillStyle = "#4CAF50";
+  pipes.forEach(pipe => {
+    ctx.fillRect(pipe.x, 0, pipe.width, pipe.top);
+    ctx.fillRect(pipe.x, pipe.top + pipe.gap, pipe.width, canvas.height);
+  });
 }
 
-#gameCanvas {
-  display: block;
-  margin: 10px auto;
-  background-color: #87CEEB;
-  border: 3px solid #004085;
-  border-radius: 12px;
+function updatePipes() {
+  if (frame % 90 === 0) {
+    const top = Math.random() * 200 + 50;
+    pipes.push({ x: canvas.width, top, width: 40, gap: 120 });
+  }
+
+  pipes.forEach(pipe => pipe.x -= 2);
+  pipes = pipes.filter(pipe => pipe.x + pipe.width > 0);
 }
 
-#questionBox {
-  max-width: 500px;
-  margin: 20px auto;
-  padding: 15px;
-  background: #fff3cd;
-  border: 2px solid #ffeeba;
-  border-radius: 10px;
+function checkCollision(pipe) {
+  return (
+    bird.x + bird.width / 2 > pipe.x &&
+    bird.x - bird.width / 2 < pipe.x + pipe.width &&
+    (bird.y - bird.height / 2 < pipe.top || bird.y + bird.height / 2 > pipe.top + pipe.gap)
+  );
 }
 
-#questionText {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 10px;
+function showQuestion() {
+  if (currentQuestion >= questions.length) {
+    document.getElementById("questionText").textContent = "Ойын аяқталды!";
+    document.getElementById("answers").innerHTML = "";
+    return;
+  }
+
+  const q = questions[currentQuestion];
+  document.getElementById("questionText").textContent = q.q;
+  const answersBox = document.getElementById("answers");
+  answersBox.innerHTML = "";
+
+  q.options.forEach((option, idx) => {
+    const btn = document.createElement("button");
+    btn.textContent = option;
+    btn.onclick = () => {
+      if (idx === q.correct) {
+        score++;
+        currentQuestion++;
+        showQuestion();
+      } else {
+        alert("Қате жауап. Құстың құлауы!");
+        resetGame();
+      }
+    };
+    answersBox.appendChild(btn);
+  });
 }
 
-#answers button {
-  display: block;
-  margin: 8px auto;
-  padding: 10px 15px;
-  border-radius: 5px;
-  border: none;
-  background: #ffc107;
-  font-size: 16px;
-  cursor: pointer;
+function resetGame() {
+  bird.y = 150;
+  bird.velocity = 0;
+  pipes = [];
+  score = 0;
+  currentQuestion = 0;
+  showQuestion();
 }
 
-#answers button:hover {
-  background-color: #e0a800;
+function gameLoop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  bird.velocity += bird.gravity;
+  bird.y += bird.velocity;
+
+  if (bird.y + bird.height / 2 > canvas.height) resetGame();
+
+  drawBird();
+  updatePipes();
+  drawPipes();
+
+  pipes.forEach(pipe => {
+    if (checkCollision(pipe)) {
+      alert("Сен соғылдың! Дұрыс жауап беріп, қайта көр!");
+      resetGame();
+    }
+  });
+
+  frame++;
+  requestAnimationFrame(gameLoop);
 }
+
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space") {
+    bird.velocity = bird.lift;
+  }
+});
+
+resetGame();
+gameLoop();
