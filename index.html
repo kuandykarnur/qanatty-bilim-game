@@ -1,14 +1,25 @@
 <!DOCTYPE html>
 <html lang="kk">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Flappy Parliament</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Qanatty Bilim - Flappy Parliament</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <h1 class="title">📘 Қанатты Білім</h1>
   <canvas id="gameCanvas"></canvas>
-  <div id="startText">Бастау үшін түртіңіз</div>
+
+  <div id="questionBox" class="hidden">
+    <p id="questionText"></p>
+    <div id="answers"></div>
+  </div>
+
+  <div id="gameOver" class="hidden">
+    <h2>🎯 Ойын аяқталды!</h2>
+    <button onclick="restartGame()">Қайта бастау</button>
+  </div>
+
   <script src="main.js"></script>
 </body>
 </html>
