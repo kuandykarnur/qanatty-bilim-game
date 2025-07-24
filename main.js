@@ -109,7 +109,3 @@ document.addEventListener("keydown", (e) => {
 
 setInterval(generatePipe, 2000);
 gameLoop();
-  }
-});
-
-gameInterval = setInterval(updateGame, 20);
